@@ -1,0 +1,22 @@
+{
+  "name": "s3cmd",
+  "version": "1.0.0",
+  "description": "s3cmd binary wrapper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhm/s3cmd.git"
+  },
+  "keywords": [
+    "s3cmd"
+  ],
+  "author": "Zac McCormick",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhm/s3cmd/issues"
+  },
+  "homepage": "https://github.com/zhm/s3cmd#readme"
+}
