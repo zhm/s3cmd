@@ -1,15 +1,7 @@
-# -*- coding: utf-8 -*-
-
-## Amazon S3 manager
-## Author: Michal Ludvig <michal@logix.cz>
-##         http://www.logix.cz/michal
-## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
-
 package = "s3cmd"
-version = "1.6.1"
+version = "1.1.0-beta3"
 url = "http://s3tools.org"
-license = "GNU GPL v2+"
+license = "GPL version 2"
 short_description = "Command line tool for managing Amazon S3 and CloudFront services"
 long_description = """
 S3cmd lets you copy files from/to Amazon S3

@@ -1,19 +1,14 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 manager
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 import sys
 import datetime
-import time
 import Utils
 
 class Progress(object):
     _stdout = sys.stdout
-    _last_display = 0
 
     def __init__(self, labels, total_size):
         self._stdout = sys.stdout
@@ -50,15 +45,8 @@ class Progress(object):
         self.display(done_message = message)
 
     def output_labels(self):
-        self._stdout.write(u"%(action)s: '%(source)s' -> '%(destination)s'  %(extra)s\n" % self.labels)
+        self._stdout.write(u"%(source)s -> %(destination)s  %(extra)s\n" % self.labels)
         self._stdout.flush()
-
-    def _display_needed(self):
-        # We only need to update the display every so often.
-        if time.time() - self._last_display > 1:
-            self._last_display = time.time()
-            return True
-        return False
 
     def display(self, new_file = False, done_message = None):
         """
@@ -82,7 +70,7 @@ class Progress(object):
             self._stdout.flush()
             return
 
-        rel_position = self.current_position * 100 / self.total_size
+        rel_position = selfself.current_position * 100 / self.total_size
         if rel_position >= self.last_milestone:
             self.last_milestone = (int(rel_position) / 5) * 5
             self._stdout.write("%d%% ", self.last_milestone)
@@ -108,10 +96,6 @@ class ProgressANSI(Progress):
             self.output_labels()
             self._stdout.write(self.ANSI_save_cursor_pos)
             self._stdout.flush()
-            return
-
-        # Only display progress every so often
-        if not (new_file or done_message) and not self._display_needed():
             return
 
         timedelta = self.time_current - self.time_start
@@ -148,10 +132,6 @@ class ProgressCR(Progress):
             self.output_labels()
             return
 
-        # Only display progress every so often
-        if not (new_file or done_message) and not self._display_needed():
-            return
-
         timedelta = self.time_current - self.time_start
         sec_elapsed = timedelta.days * 86400 + timedelta.seconds + float(timedelta.microseconds)/1000000.0
         if (sec_elapsed > 0):
@@ -172,45 +152,5 @@ class ProgressCR(Progress):
             self._stdout.write("  %s\n" % done_message)
 
         self._stdout.flush()
-
-class StatsInfo(object):
-    """Holding info for stats totals"""
-    def __init__(self):
-        self.files = None
-        self.size = None
-        self.files_transferred = None
-        self.size_transferred = None
-        self.files_copied = None
-        self.size_copied = None
-        self.files_deleted = None
-        self.size_deleted = None
-
-    def format_output(self):
-        outstr = u""
-        if self.files is not None:
-            tmp_str = u"Number of files: %d"% self.files
-            if self.size is not None:
-                tmp_str += " (%d bytes) "% self.size
-            outstr += u"\nStats: " + tmp_str
-
-        if self.files_transferred:
-            tmp_str = u"Number of files transferred: %d"% self.files_transferred
-            if self.size_transferred is not None:
-                tmp_str += " (%d bytes) "% self.size_transferred
-            outstr += u"\nStats: " + tmp_str
-
-        if self.files_copied:
-            tmp_str = u"Number of files copied: %d"% self.files_copied
-            if self.size_copied is not None:
-                tmp_str += " (%d bytes) "% self.size_copied
-            outstr += u"\nStats: " + tmp_str
-
-        if self.files_deleted:
-            tmp_str = u"Number of files deleted: %d"% self.files_deleted
-            if self.size_deleted is not None:
-                tmp_str += " (%d bytes) "% self.size_deleted
-            outstr += u"\nStats: " + tmp_str
-
-        return outstr
 
 # vim:et:ts=4:sts=4:ai

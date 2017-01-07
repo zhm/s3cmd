@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 manager
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 class BidirMap(object):
     def __init__(self, **map):

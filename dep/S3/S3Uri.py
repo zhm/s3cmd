@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 manager
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 import os
 import re
 import sys
-from Utils import unicodise, deunicodise, check_bucket_name_dns_support
-import Config
+from BidirMap import BidirMap
+from logging import debug
+import S3
+from Utils import unicodise, check_bucket_name_dns_conformity
 
 class S3Uri(object):
     type = None
@@ -31,7 +30,7 @@ class S3Uri(object):
                 instance = object.__new__(subclass)
                 instance.__init__(string)
                 return instance
-            except ValueError:
+            except ValueError, e:
                 continue
         raise ValueError("%s: not a recognized URI" % string)
 
@@ -52,14 +51,14 @@ class S3Uri(object):
 
 class S3UriS3(S3Uri):
     type = "s3"
-    _re = re.compile("^s3:///*([^/]*)/?(.*)", re.IGNORECASE | re.UNICODE)
+    _re = re.compile("^s3://([^/]+)/?(.*)", re.IGNORECASE)
     def __init__(self, string):
         match = self._re.match(string)
         if not match:
             raise ValueError("%s: not a S3 URI" % string)
         groups = match.groups()
         self._bucket = groups[0]
-        self._object = groups[1]
+        self._object = unicodise(groups[1])
 
     def bucket(self):
         return self._bucket
@@ -74,16 +73,16 @@ class S3UriS3(S3Uri):
         return bool(self._object)
 
     def uri(self):
-        return u"/".join([u"s3:/", self._bucket, self._object])
+        return "/".join(["s3:/", self._bucket, self._object])
 
     def is_dns_compatible(self):
-        return check_bucket_name_dns_support(Config.Config().host_bucket, self._bucket)
+        return check_bucket_name_dns_conformity(self._bucket)
 
     def public_url(self):
         if self.is_dns_compatible():
-            return "http://%s.%s/%s" % (self._bucket, Config.Config().host_base, self._object)
+            return "http://%s.s3.amazonaws.com/%s" % (self._bucket, self._object)
         else:
-            return "http://%s/%s/%s" % (Config.Config().host_base, self._bucket, self._object)
+            return "http://s3.amazonaws.com/%s/%s" % (self._bucket, self._object)
 
     def host_name(self):
         if self.is_dns_compatible():
@@ -93,11 +92,11 @@ class S3UriS3(S3Uri):
 
     @staticmethod
     def compose_uri(bucket, object = ""):
-        return u"s3://%s/%s" % (bucket, object)
+        return "s3://%s/%s" % (bucket, object)
 
     @staticmethod
     def httpurl_to_s3uri(http_url):
-        m=re.match("(https?://)?([^/]+)/?(.*)", http_url, re.IGNORECASE | re.UNICODE)
+        m=re.match("(https?://)?([^/]+)/?(.*)", http_url, re.IGNORECASE)
         hostname, object = m.groups()[1:]
         hostname = hostname.lower()
         if hostname == "s3.amazonaws.com":
@@ -114,20 +113,20 @@ class S3UriS3(S3Uri):
             bucket = hostname[:-(len(".s3.amazonaws.com"))]
         else:
             raise ValueError("Unable to parse URL: %s" % http_url)
-        return S3Uri(u"s3://%(bucket)s/%(object)s" % {
+        return S3Uri("s3://%(bucket)s/%(object)s" % {
             'bucket' : bucket,
             'object' : object })
 
 class S3UriS3FS(S3Uri):
     type = "s3fs"
-    _re = re.compile("^s3fs:///*([^/]*)/?(.*)", re.IGNORECASE | re.UNICODE)
+    _re = re.compile("^s3fs://([^/]*)/?(.*)", re.IGNORECASE)
     def __init__(self, string):
         match = self._re.match(string)
         if not match:
             raise ValueError("%s: not a S3fs URI" % string)
         groups = match.groups()
         self._fsname = groups[0]
-        self._path = groups[1].split("/")
+        self._path = unicodise(groups[1]).split("/")
 
     def fsname(self):
         return self._fsname
@@ -136,17 +135,17 @@ class S3UriS3FS(S3Uri):
         return "/".join(self._path)
 
     def uri(self):
-        return "/".join([u"s3fs:/", self._fsname, self.path()])
+        return "/".join(["s3fs:/", self._fsname, self.path()])
 
 class S3UriFile(S3Uri):
     type = "file"
-    _re = re.compile("^(\w+://)?(.*)", re.UNICODE)
+    _re = re.compile("^(\w+://)?(.*)")
     def __init__(self, string):
         match = self._re.match(string)
         groups = match.groups()
         if groups[0] not in (None, "file://"):
             raise ValueError("%s: not a file:// URI" % string)
-        self._path = groups[1].split("/")
+        self._path = unicodise(groups[1]).split("/")
 
     def path(self):
         return "/".join(self._path)
@@ -155,14 +154,14 @@ class S3UriFile(S3Uri):
         return "/".join(["file:/", self.path()])
 
     def isdir(self):
-        return os.path.isdir(deunicodise(self.path()))
+        return os.path.isdir(self.path())
 
     def dirname(self):
-        return unicodise(os.path.dirname(deunicodise(self.path())))
+        return os.path.dirname(self.path())
 
 class S3UriCloudFront(S3Uri):
     type = "cf"
-    _re = re.compile("^cf://([^/]*)/*(.*)", re.IGNORECASE | re.UNICODE)
+    _re = re.compile("^cf://([^/]*)/*(.*)", re.IGNORECASE)
     def __init__(self, string):
         match = self._re.match(string)
         if not match:

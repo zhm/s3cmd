@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 - Access Control List representation
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 from Utils import getTreeFromXml
 
@@ -149,6 +146,7 @@ class ACL(object):
         if self.hasGrant(name, permission):
             return
 
+        name = name.lower()
         permission = permission.upper()
 
         if "ALL" == permission:
@@ -161,17 +159,12 @@ class ACL(object):
         grantee.name = name
         grantee.permission = permission
 
-        if  '@' in name:
-            grantee.name = grantee.name.lower()
-            grantee.xsi_type = "AmazonCustomerByEmail"
-            grantee.tag = "EmailAddress"
-        elif 'http://acs.amazonaws.com/groups/' in name:
-            grantee.xsi_type = "Group"
-            grantee.tag = "URI"
-        else:
-            grantee.name = grantee.name.lower()
+        if  name.find('@') <= -1: # ultra lame attempt to differenciate emails id from canonical ids
             grantee.xsi_type = "CanonicalUser"
             grantee.tag = "ID"
+        else:
+            grantee.xsi_type = "AmazonCustomerByEmail"
+            grantee.tag = "EmailAddress"
 
         self.appendGrantee(grantee)
 
@@ -181,10 +174,9 @@ class ACL(object):
         permission = permission.upper()
 
         if "ALL" == permission:
-            self.grantees = [g for g in self.grantees if not (g.name.lower() == name or g.display_name.lower() == name)]
+            self.grantees = [g for g in self.grantees if not g.name.lower() == name]
         else:
-            self.grantees = [g for g in self.grantees if not ((g.display_name.lower() == name and g.permission.upper() == permission)\
-				 or (g.name.lower() == name and g.permission.upper() ==  permission))]
+            self.grantees = [g for g in self.grantees if not (g.name.lower() == name and g.permission.upper() ==  permission)]
 
 
     def __str__(self):

@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 - Access Control List representation
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 import S3Uri
 from Exceptions import ParameterError
@@ -28,7 +25,7 @@ class AccessLog(object):
         self.tree.attrib['xmlns'] = "http://doc.s3.amazonaws.com/2006-03-01"
 
     def isLoggingEnabled(self):
-        return (self.tree.find(".//LoggingEnabled") is not None)
+        return bool(self.tree.find(".//LoggingEnabled"))
 
     def disableLogging(self):
         el = self.tree.find(".//LoggingEnabled")
@@ -45,7 +42,8 @@ class AccessLog(object):
 
     def targetPrefix(self):
         if self.isLoggingEnabled():
-            target_prefix = u"s3://%s/%s" % (
+            el = self.tree.find(".//LoggingEnabled")
+            target_prefix = "s3://%s/%s" % (
                 self.tree.find(".//LoggingEnabled//TargetBucket").text,
                 self.tree.find(".//LoggingEnabled//TargetPrefix").text)
             return S3Uri.S3Uri(target_prefix)
@@ -54,7 +52,7 @@ class AccessLog(object):
 
     def setAclPublic(self, acl_public):
         le = self.tree.find(".//LoggingEnabled")
-        if le is None:
+        if not le:
             raise ParameterError("Logging not enabled, can't set default ACL for logs")
         tg = le.find(".//TargetGrants")
         if not acl_public:
@@ -79,9 +77,10 @@ class AccessLog(object):
 __all__.append("AccessLog")
 
 if __name__ == "__main__":
+    from S3Uri import S3Uri
     log = AccessLog()
     print log
-    log.enableLogging(S3Uri.S3Uri(u"s3://targetbucket/prefix/log-"))
+    log.enableLogging(S3Uri("s3://targetbucket/prefix/log-"))
     print log
     log.setAclPublic(True)
     print log

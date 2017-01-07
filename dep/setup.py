@@ -1,16 +1,12 @@
-#!/usr/bin/env python2
-# -*- coding=utf-8 -*-
-
+from distutils.core import setup
 import sys
 import os
 
-from setuptools import setup
-
 import S3.PkgInfo
 
-if float("%d.%d" % sys.version_info[:2]) < 2.6:
+if float("%d.%d" % sys.version_info[:2]) < 2.4:
     sys.stderr.write("Your Python version %d.%d.%d is not supported.\n" % sys.version_info[:3])
-    sys.stderr.write("S3cmd requires Python 2.6 or newer.\n")
+    sys.stderr.write("S3cmd requires Python 2.4 or newer.\n")
     sys.exit(1)
 
 try:
@@ -51,7 +47,7 @@ if not os.getenv("S3CMD_PACKAGING"):
     man_path = os.getenv("S3CMD_INSTPATH_MAN") or "share/man"
     doc_path = os.getenv("S3CMD_INSTPATH_DOC") or "share/doc/packages"
     data_files = [
-        (doc_path+"/s3cmd", [ "README.md", "INSTALL", "NEWS" ]),
+        (doc_path+"/s3cmd", [ "README", "INSTALL", "NEWS" ]),
         (man_path+"/man1", [ "s3cmd.1" ] ),
     ]
 else:
@@ -69,8 +65,6 @@ setup(
     ## Packaging details
     author = "Michal Ludvig",
     author_email = "michal@logix.cz",
-    maintainer = "github.com/mdomsch, github.com/matteobar",
-    maintainer_email = "s3tools-bugs@lists.sourceforge.net",
     url = S3.PkgInfo.url,
     license = S3.PkgInfo.license,
     description = S3.PkgInfo.short_description,
@@ -80,29 +74,7 @@ setup(
 Authors:
 --------
     Michal Ludvig  <michal@logix.cz>
-""" % (S3.PkgInfo.long_description),
-
-    classifiers = [
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Environment :: MacOS X',
-        'Environment :: Win32 (MS Windows)',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-        'Natural Language :: English',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
-        'Topic :: System :: Archiving',
-        'Topic :: Utilities',
-    ],
-
-    install_requires = ["python-dateutil", "python-magic"]
+""" % (S3.PkgInfo.long_description)
     )
 
 # vim:et:ts=4:sts=4:ai

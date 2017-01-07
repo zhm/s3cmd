@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
 ## Amazon S3 manager
 ## Author: Michal Ludvig <michal@logix.cz>
 ##         http://www.logix.cz/michal
 ## License: GPL Version 2
-## Copyright: TGRMN Software and contributors
 
 from BidirMap import BidirMap
 
@@ -47,14 +44,6 @@ class SortedDict(dict):
 
     def __iter__(self):
         return SortedDictIterator(self, self.keys())
-
-    def __getslice__(self, i=0, j=-1):
-        keys = self.keys()[i:j]
-        r = SortedDict(ignore_case = self.ignore_case)
-        for k in keys:
-            r[k] = self[k]
-        return r
-
 
 if __name__ == "__main__":
     d = { 'AWS' : 1, 'Action' : 2, 'america' : 3, 'Auckland' : 4, 'America' : 5 }
